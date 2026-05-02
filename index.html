@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spesial buat manusia favorit</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            background: #1a0f1e;
+            color: #f8f5ff;
+            cursor: none;
+        }
+
+        /* Custom Cursor */
+        .cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, rgba(255,182,193,0.8) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.1s ease;
+            backdrop-filter: blur(2px);
+        }
+
+        /* Opening Screen */
+        .opening {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(135deg, #2d1b3a 0%, #1a0f1e 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 1s ease;
+        }
+
+        .opening.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .opening h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(3rem, 8vw, 6rem);
+            color: #ffd1dc;
+            margin-bottom: 1rem;
+            text-align: center;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 20px rgba(255,209,220,0.5); }
+            to { text-shadow: 0 0 40px rgba(255,209,220,0.8), 0 0 60px rgba(255,209,220,0.3); }
+        }
+
+        .opening p {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .enter-btn {
+            padding: 1rem 2.5rem;
+            font-size: 1.1rem;
+            background: linear-gradient(45deg, #ff9aa2, #ffb3ba);
+            color: #1a0f1e;
+            border: none;
+            border-radius: 50px;
+            cursor: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(255,154,162,0.4);
+        }
+
+        .enter-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(255,154,162,0.6);
+        }
+
+        /* Main Content */
+        .main-content {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        .main-content.show {
+            opacity: 1;
+        }
+
+        /* Background Slider */
+        .bg-slider {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: -2;
+        }
+
+        .bg-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            filter: blur(3px) brightness(0.6);
+            opacity: 0;
+            transition: opacity 1.5s ease;
+        }
+
+        .bg-slide.active {
+            opacity: 1;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(135deg, rgba(26,15,30,0.7) 0%, rgba(45,27,58,0.8) 100%);
+            z-index: -1;
+        }
+
+        /* Slider */
+        .photo-slider {
+            height: 60vh;
+            max-height: 500px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            overflow: hidden;
+        }
+
+        .photo-slide {
+            position: absolute;
+            width: 300px;
+            height: 400px;
+            border-radius: 20px;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transform: scale(0.8) translateY(50px);
+            transition: all 1s ease;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+            border: 2px solid rgba(255,209,220,0.3);
+        }
+
+        .photo-slide.active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+
+        /* Content Section */
+        .content-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .birthday-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            color: #ffd1dc;
+            margin-bottom: 1rem;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease;
+        }
+
+        .birthday-title.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .age {
+            font-size: clamp(4rem, 12vw, 7rem);
+            font-weight: 700;
+            background: linear-gradient(45deg, #ff9aa2, #ffd1dc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 2rem;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease 0.2s;
+        }
+
+        .age.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .typewriter {
+            font-size: 1.3rem;
+            line-height: 1.8;
+            max-width: 600px;
+            margin: 0 auto 3rem;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease 0.4s;
+            border-right: 2px solid #ffd1dc;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .typewriter.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .typewriter.show.animate {
+            border-right: none;
+        }
+
+        .message-btn {
+            padding: 1.2rem 3rem;
+            font-size: 1.1rem;
+            background: linear-gradient(45deg, rgba(255,209,220,0.2), rgba(255,154,162,0.2));
+            color: #f8f5ff;
+            border: 2px solid rgba(255,209,220,0.5);
+            border-radius: 50px;
+            cursor: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease 0.6s;
+        }
+
+        .message-btn.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .message-btn:hover {
+            background: linear-gradient(45deg, rgba(255,209,220,0.4), rgba(255,154,162,0.4));
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(255,209,220,0.3);
+        }
+
+        /* Music Control */
+        .music-control {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, rgba(255,209,220,0.3), rgba(255,154,162,0.3));
+            border: 2px solid rgba(255,209,220,0.5);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            opacity: 0;
+            transform: scale(0);
+            animation: musicFloat 3s ease-in-out infinite 2s;
+        }
+
+        .main-content.show ~ .music-control {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        @keyframes musicFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .music-control:hover {
+            transform: scale(1.1);
+            background: linear-gradient(45deg, rgba(255,209,220,0.5), rgba(255,154,162,0.5));
+        }
+
+        .music-control.playing {
+            background: linear-gradient(45deg, #ff9aa2, #ffd1dc);
+        }
+
+        /* Love Hearts Animation */
+        .hearts {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .heart {
+            position: absolute;
+            font-size: 20px;
+            color: #ff9aa2;
+            animation: fall linear infinite;
+            opacity: 0.7;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Message Modal */
+        .message-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(26,15,30,0.95);
+            backdrop-filter: blur(10px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .message-modal.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .message-content {
+            background: linear-gradient(135deg, rgba(45,27,58,0.9), rgba(26,15,30,0.9));
+            padding: 3rem;
+            border-radius: 30px;
+            max-width: 500px;
+            text-align: center;
+            border: 1px solid rgba(255,209,220,0.3);
+            backdrop-filter: blur(20px);
+            transform: scale(0.8);
+            transition: transform 0.5s ease;
+        }
+
+        .message-modal.show .message-content {
+            transform: scale(1);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            width: 40px;
+            height: 40px;
+            background: rgba(255,209,220,0.3);
+            border: none;
+            border-radius: 50%;
+            color: #f8f5ff;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: rgba(255,154,162,0.6);
+            transform: rotate(90deg);
+        }
+
+        .message-text {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            margin-top: 1rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s ease;
+        }
+
+        .message-modal.show .message-text {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .photo-slider {
+                height: 50vh;
+            }
+            
+            .photo-slide {
+                width: 250px;
+                height: 350px;
+            }
+            
+            .content-section {
+                padding: 1rem;
+            }
+            
+            .message-content {
+                padding: 2rem;
+                margin: 1rem;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1a0f1e;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(45deg, #ff9aa2, #ffd1dc);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Custom Cursor -->
+    <div class="cursor" id="cursor"></div>
+
+    <!-- Opening Screen -->
+    <div class="opening" id="opening">
+        <h1>Hai Dewi</h1>
+        <p>Klik untuk memulai perjalanan istimewa...</p>
+        <button class="enter-btn" id="enterBtn">Masuk</button>
+    </div>
+
+    <!-- Background Slider -->
+    <div class="bg-slider">
+        <div class="bg-slide active" style="background-image: url('foto1.jpg');"></div>
+        <div class="bg-slide" style="background-image: url('foto2.jpg');"></div>
+        <div class="bg-slide" style="background-image: url('foto3.jpg');"></div>
+        <div class="bg-slide" style="background-image: url('foto4.jpg');"></div>
+        <div class="bg-slide" style="background-image: url('foto5.jpg');"></div>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay"></div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Photo Slider -->
+        <section class="photo-slider">
+            <div class="photo-slide active" style="background-image: url('foto1.jpg.jpeg');"></div>
+            <div class="photo-slide" style="background-image: url('foto2.jpg.jpeg');"></div>
+            <div class="photo-slide" style="background-image: url('foto3.jpg.jpeg');"></div>
+            <div class="photo-slide" style="background-image: url('foto4.jpg.jpeg');"></div>
+            <div class="photo-slide" style="background-image: url('foto5.jpg.jpeg');"></div>
+        </section>
+
+        <!-- Content Section -->
+        <section class="content-section">
+            <h2 class="birthday-title" id="birthdayTitle">Selamat Ulang Tahun</h2>
+            <div class="age" id="age">18</div>
+            <p class="typewriter" id="typewriter">
+                Ciye yang hari ini memasuki umur 18 tahun, tambah tua aja🤭
+            </p>
+            <button class="message-btn" id="messageBtn">Baca Pesan Khusus</button>
+        </section>
+    </div>
+
+    <!-- Music Control -->
+    <button class="music-control" id="musicControl">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+        </svg>
+    </button>
+
+    <!-- Love Hearts -->
+    <div class="hearts" id="hearts"></div>
+
+    <!-- Message Modal -->
+    <div class="message-modal" id="messageModal">
+        <button class="close-btn" id="closeBtn">&times;</button>
+        <div class="message-content">
+            <h3 style="font-family: 'Playfair Display', serif; color: #ffd1dc; margin-bottom: 1rem;">Haii Manusia Imoeett,</h3>
+            <p class="message-text">
+                Di Umur kamu yang sekarang sudah memasuki usia 18 Tahun ini, Yuqqq refleksikan diri, coba ingat ingat hal hal yang terjadi pada diri 
+                Kamu selama 18 tahun ini, pasti banyak kejadian yang sudah kamu lalui baik yang bikin menyenangkan dan juga kejadian yang bikin sedih. Aku sangatt bangga sama kamu
+                karna udah bertahan sejauh ini. aku doakan di usia kamu sekarang ini, kamu bisa jadi manusia yang jauh lebih baik dari pada kemarin, Rezekinya di perlancar, masalah di permudah jalannya
+                dan apa yang kamu harapkan dan inginkan bisa terwujudkan,  dan juga aku doakan semoga lolos UTBK aamiin. 
+                Kamu jangan pernah bosan sama aku yaa, kalau ada apa apa cerita ke aku jangan di pendemm teruss,
+                STOP GA ENAKAN SAMA AKU, AKU JUGA SUKA DI REPOTIN SAMA KAMU!!
+                <br><br>
+                Dengan cinta tulus,
+                <br>
+                <span style="color: #ffd1dc; font-weight: 500;">Seseorang yang selalu mencintaimu ✨</span>
+            </p>
+        </div>
+    </div>
+
+    <!-- Audio -->
+    <audio id="bgMusic" loop>
+        <source src="lagu.mp3.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // DOM Elements
+        const opening = document.getElementById('opening');
+        const mainContent = document.getElementById('mainContent');
+        const enterBtn = document.getElementById('enterBtn');
+        const birthdayTitle = document.getElementById('birthdayTitle');
+        const age = document.getElementById('age');
+        const typewriter = document.getElementById('typewriter');
+        const messageBtn = document.getElementById('messageBtn');
+        const musicControl = document.getElementById('musicControl');
+        const bgMusic = document.getElementById('bgMusic');
+        const messageModal = document.getElementById('messageModal');
+        const closeBtn = document.getElementById('closeBtn');
+        const cursor = document.getElementById('cursor');
+        const hearts = document.getElementById('hearts');
+
+        // Photo & BG Slider
+        const photoSlides = document.querySelectorAll('.photo-slide');
+        const bgSlides = document.querySelectorAll('.bg-slide');
+        let currentSlide = 0;
+
+        // Initialize
+        function init() {
+            // Custom Cursor
+            document.addEventListener('mousemove', (e) => {
+                cursor.style.left = e.clientX + 'px';
+                cursor.style.top = e.clientY + 'px';
+            });
+
+            // Enter Button
+            enterBtn.addEventListener('click', enterSite);
+            opening.addEventListener('click', enterSite);
+
+            // Music Control
+            musicControl.addEventListener('click', toggleMusic);
+
+            // Message Modal
+            messageBtn.addEventListener('click', showMessage);
+            closeBtn.addEventListener('click', hideMessage);
+            messageModal.addEventListener('click', (e) => {
+                if (e.target === messageModal) hideMessage();
+            });
+
+            // Typewriter Effect
+            setTimeout(() => {
+                typewriter.classList.add('show', 'animate');
+            }, 2000);
+
+            // Start slider after content shows
+            setTimeout(startSlider, 3000);
+
+            // Create hearts
+            createHearts();
+        }
+
+        // Enter Site
+        function enterSite() {
+            opening.classList.add('fade-out');
+            mainContent.classList.add('show');
+            birthdayTitle.classList.add('show');
+            age.classList.add('show');
+            messageBtn.classList.add('show');
+            
+            setTimeout(() => {
+                typewriter.style.borderRight = 'none';
+            }, 100);
+        }
+
+        // Slider
+        function startSlider() {
+            setInterval(() => {
+                photoSlides[currentSlide].classList.remove('active');
+                bgSlides[currentSlide].classList.remove('active');
+                
+                currentSlide = (currentSlide + 1) % photoSlides.length;
+                
+                photoSlides[currentSlide].classList.add('active');
+                bgSlides[currentSlide].classList.add('active');
+            }, 4000);
+        }
+
+        // Music Control
+        function toggleMusic() {
+            if (bgMusic.paused) {
+                bgMusic.play().catch(e => console.log('Autoplay prevented'));
+                musicControl.classList.add('playing');
+                musicControl.innerHTML = `
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M6 19h4V5H6v14zM14 5v14h4V5h-4z"/>
+                    </svg>
+                `;
+            } else {
+                bgMusic.pause();
+                musicControl.classList.remove('playing');
+                musicControl.innerHTML = `
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                    </svg>
+                `;
+            }
+        }
+
+        // Message Modal
+        function showMessage() {
+            messageModal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function hideMessage() {
+            messageModal.classList.remove('show');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Hearts Animation
+        function createHearts() {
+            setInterval(() => {
+                const heart = document.createElement('div');
+                heart.className = 'heart';
+                heart.innerHTML = '💖';
+                heart.style.left = Math.random() * 100 + 'vw';
+                heart.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                hearts.appendChild(heart);
+
+                setTimeout(() => {
+                    heart.remove();
+                }, 5000);
+            }, 300);
+        }
+
+        // Typewriter Effect
+        const text = typewriter.textContent;
+        typewriter.textContent = '';
+
+        function typeWriter() {
+            let i = 0;
+            const timer = setInterval(() => {
+                typewriter.textContent += text[i];
+                i++;
+                if (i > text.length) {
+                    clearInterval(timer);
+                    typewriter.classList.add('animate');
+                }
+            }, 80);
+        }
+
+        // Show typewriter after animations
+        setTimeout(typeWriter, 2500);
+
+        // Prevent context menu
+        document.addEventListener('contextmenu', e => e.preventDefault());
+
+        // Initialize on load
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
